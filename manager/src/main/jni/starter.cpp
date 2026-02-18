@@ -163,7 +163,7 @@ static int fork_daemon(int returnParent) {
         exit(EXIT_SUCCESS);
 
     uid_t uid = getuid();
-    if (uid == 0 || uid == 1000)
+    if (uid == 0 || uid < 10000)
         switch_cgroup();
     
     return 0;
@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
 
     se::init();
 
-    if (uid == 0 || uid == 1000) {
+    if (uid == 0 || uid < 10000) {
         if (android_get_device_api_level() >= 29) {
             printf("info: switching mount namespace to init...\n");
             switch_mnt_ns(1);
