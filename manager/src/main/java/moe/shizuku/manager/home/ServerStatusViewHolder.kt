@@ -45,7 +45,8 @@ class ServerStatusViewHolder(private val binding: HomeServerStatusBinding, root:
         } else {
             iconView.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_server_error_24dp))
         }
-        val user = if (isRoot) "root" else if (isSystem) "system" else "adb"
+        //val user = if (isRoot) "root" else if (isSystem) "system" else "adb"
+        val user = status.uid
         val title = if (ok) {
             context.getString(R.string.home_status_service_is_running, context.getString(R.string.app_name))
         } else {
