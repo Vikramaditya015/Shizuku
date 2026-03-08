@@ -286,6 +286,8 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
                 callingPackage = "com.android.shell";
             } else if (serverUid == 0 || serverUid == 1000) {
                 callingPackage = null;
+            } else if (serverUid == 1001) {
+                callingPackage = "com.android.phone";
             } else {
                 List<String> packages = PackageManagerApis.getPackagesForUidNoThrow(serverUid);
                 callingPackage = packages.isEmpty() ? null : packages.get(0);
