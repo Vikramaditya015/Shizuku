@@ -277,7 +277,30 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
                 .putExtra("pid", callingPid)
                 .putExtra("requestCode", requestCode)
                 .putExtra("applicationInfo", ai);
-        ActivityManagerApis.startActivityNoThrow(intent, null, isWorkProfileUser ? 0 : userId);
+        //ActivityManagerApis.startActivityNoThrow(intent, null, isWorkProfileUser ? 0 : userId);
+        try {
+             int serverUid = android.system.Os.getuid();
+             String callingPackage;
+             if (serverUid == 2000) {
+                 callingPackage = "com.android.shell";
+             } else if (serverUid == 0 || serverUid == 1000) {
+                 callingPackage = null;
+             } else {
+                 List<String> packages = PackageManagerApis.getPackagesForUidNoThrow(serverUid);
+                 callingPackage = packages.isEmpty() ? null : packages.get(0);
+             }
+             IBinder b = ServiceManager.getService("activity");
+             IActivityManager am = android.app.IActivityManager.Stub.asInterface(b);
+             am.startActivityAsUser(
+                null,
+                callingPackage,
+                intent,
+                null,
+                null, null, 0, 0, null, null,
+                isWorkProfileUser ? 0 : userId);
+       } catch (Throwable e) {
+            LOGGER.w(e, "showPermissionConfirmation: startActivity failed");
+        }
     }
 
     @Override
