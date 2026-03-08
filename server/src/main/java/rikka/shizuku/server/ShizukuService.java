@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.lang.reflect.Method;
 
 import kotlin.collections.ArraysKt;
 import moe.shizuku.api.BinderContainer;
@@ -279,27 +280,41 @@ public class ShizukuService extends Service<ShizukuUserServiceManager, ShizukuCl
                 .putExtra("applicationInfo", ai);
         //ActivityManagerApis.startActivityNoThrow(intent, null, isWorkProfileUser ? 0 : userId);
         try {
-             int serverUid = android.system.Os.getuid();
-             String callingPackage;
-             if (serverUid == 2000) {
-                 callingPackage = "com.android.shell";
-             } else if (serverUid == 0 || serverUid == 1000) {
-                 callingPackage = null;
-             } else {
-                 List<String> packages = PackageManagerApis.getPackagesForUidNoThrow(serverUid);
-                 callingPackage = packages.isEmpty() ? null : packages.get(0);
-             }
-             IBinder b = ServiceManager.getService("activity");
-             IActivityManager am = android.app.IActivityManager.Stub.asInterface(b);
-             am.startActivityAsUser(
+            int serverUid = android.system.Os.getuid();
+            String callingPackage;
+            if (serverUid == 2000) {
+                callingPackage = "com.android.shell";
+            } else if (serverUid == 0 || serverUid == 1000) {
+                callingPackage = null;
+            } else {
+                List<String> packages = PackageManagerApis.getPackagesForUidNoThrow(serverUid);
+                callingPackage = packages.isEmpty() ? null : packages.get(0);
+            }
+            IBinder b = ServiceManager.getService("activity");
+            Class<?> stub = Class.forName("android.app.IActivityManager$Stub");
+            Method asInterface = stub.getMethod("asInterface", IBinder.class);
+            Object am = asInterface.invoke(null, b);
+            Method startActivityAsUser = am.getClass().getMethod("startActivityAsUser",
+                 android.app.IApplicationThread.class,
+                 String.class,
+                 Intent.class,
+                 String.class,
+                 IBinder.class,
+                 String.class,
+                 int.class,
+                 int.class,
+                 android.app.ProfilerInfo.class,
+                 Bundle.class,
+                 int.class);
+           startActivityAsUser.invoke(am,
                 null,
                 callingPackage,
                 intent,
                 null,
                 null, null, 0, 0, null, null,
                 isWorkProfileUser ? 0 : userId);
-       } catch (Throwable e) {
-            LOGGER.w(e, "showPermissionConfirmation: startActivity failed");
+        } catch (Throwable e) {
+         LOGGER.w(e, "showPermissionConfirmation: startActivity failed");
         }
     }
 
